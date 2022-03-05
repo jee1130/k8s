@@ -45,10 +45,38 @@ Pod : 컨테이너를 표현하는 k8s API의 최소 단위
       Pod에는 하나 또는 여러 개의 컨테이너가 포함 될 수 있음  
 
 ##### CLI  
-$kubectl run webserver --image=nginx:1.14 --port=80 // 80 port를 통해서 webserver라는 Pod 생성  
-$kubectl get pods -o wide // Pod 확인  
-$watch 명령어 // 2초마다 명령어 실행  
-$6 
+###### 동작중인 Pod 정보 보기  
+$kubectl get pods  
+$kubectl get pods -o wide  
+$kubectl describe pod 파드명  
+$kubectl get pods --all-namespaces // 전체 namespace에서 동작 pod 확인
+###### 동작중인 Pod 수정  
+$kubectl edit pod 파드명  
+###### 동작중인 Pod 삭제  
+$kubectl delete pod 파드명  
+$kubectl delete pod -all   
+###### 기타  
+$kubectl run webserver --image=nginx:1.14 --port=80 // 80 port를 통해서 webserver라는 Pod 생성    
+$watch 명령어 // 2초마다 명령어 실행 (뒤에 --watch 옵션으로 넣어도 됨)  
+$kubectl exec multipod -c nginx-container -it -- /bin/bash // multipod 안에 nginx-container로 들어가기  
+$kubectl logs multipod -c nginx-container // multipod 안에 nginx-container 로그 보기  
+
 ##### yaml  
 $kubectl create -f webserver.yaml // yaml로 Pod 생성  
+
+# Liveness Probe  
+매커니즘  
+1. httpdGet probe : 지정한 IP주소, port, path에 HTTP GET 요청하여 응답 확인. 반환코드가 200이 아닌 값이 연속 3번 나오면 오류. 컨테이너를 다시 시작.  
+2. tcpSocket probe : 지정된 port에 TCP연결을 시도. 연결되지 않으면 컨테이너를 다시 시작.  
+3. exec probe : exec 명령을 전달하고 명령의 종료코드가 0이 아니면 컨테이너 다시 시작.  
+예제)exec:  
+       command:
+         -ls
+         -/data/file
+##### 옵션  
+initialDelaySeconds : 0 // 컨테이너가 만들어진 뒤 0초 뒤에 Liveness 시작  
+timeoutSeconds : 1 // timeout 시간 1초  
+periodSeconds : 10 // 10초마다 한번씩 검사  
+successThreshold : 1 // 1번 성공하면 성공  
+failureThreshold : 3 // 3번 실패하면 실패 
 
