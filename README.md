@@ -37,4 +37,18 @@ yaml : key-value 타입, 들여쓰기는 Tab대신 Space Bar로 사용
 # api version  
 $kubectl explain pod // pod 정보 확인  
 
+# Pod  
+$docker build -t 컨테이너명/app.js // 컨테이너 만들기  
+$docker push 컨테이너명/app.js // 컨테이너를 docker hub에 push  
+컨테이너 하나 = 애플리케이션 하나  
+Pod : 컨테이너를 표현하는 k8s API의 최소 단위  
+      Pod에는 하나 또는 여러 개의 컨테이너가 포함 될 수 있음  
+
+##### CLI  
+$kubectl run webserver --image=nginx:1.14 --port=80 // 80 port를 통해서 webserver라는 Pod 생성  
+$kubectl get pods -o wide // Pod 확인  
+$watch 명령어 // 2초마다 명령어 실행  
+$6 
+##### yaml  
+$kubectl create -f webserver.yaml // yaml로 Pod 생성  
 
