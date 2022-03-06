@@ -1,10 +1,10 @@
-# kubeadm, kubelet, kubectl
+# 1.kubeadm, kubelet, kubectl
 kubeadm : 클러스터를 부트스트랩하는 명령어  
 kubelet : 클러스터의 모든 머신에서 실행되는 파드와 컨테이너 시작과 같은 작업을 수행하는 컴포넌트  
 kubectl : 클러스터와 통신하기 위한 커맨드 라인 유틸리티  
 ##### !!주의 컨트롤 플레인 서버보다 kubelet 버전이 높으면 버전 차이 버그 발생!!
 ##### !!주의 컨트롤 플레인 버전과 kubeadm 버전 일치해야함!!
-# CONTROLL-PLANE, NODE
+# 2.CONTROLL-PLANE, NODE
 #### CONTROLL-PLANE  
 kube-apiserver : k8s API를 사용하도록 요청을 받고 요청이 유효한지 검사  
 kuebe-controller-manager : 파드를 관찰하며 개수를 보장  
@@ -14,7 +14,7 @@ kube-scheduler : 파드를 실행할 노드 선택
 kubelet : 모든 노드에서 실행되는 k8s 에이전트, 데몬 형태로 동작  
 kube-proxy : k8s의 network 동작읠 관리, iptable rule을 구성
 컨테이너 런타임 : 컨테이너를 실행하는 엔진(ex:docker,containerd,runc)
-# namespace
+# 3.namespace
 namespace : API를 논리적으로 나눠서 관리하기 쉽게 만듬    
 #### CLI  
 $kubectl get pod -n default // namespace별 파드 조회    
@@ -37,7 +37,7 @@ yaml : key-value 타입, 들여쓰기는 Tab대신 Space Bar로 사용
 #### api version  
 $kubectl explain pod // pod 정보 확인  
 
-# Pod  
+# 4.Pod  
 $docker build -t 컨테이너명/app.js // 컨테이너 만들기  
 $docker push 컨테이너명/app.js // 컨테이너를 docker hub에 push  
 컨테이너 하나 = 애플리케이션 하나  
@@ -107,10 +107,10 @@ Sidecar : 컨테이너 두가지가 같이 실행되야 하는 컨테이너
 Adapter : 외부의 데이터를 가공  
 Ambassador : 내부에서 외부로 데이터 가공  
 
-# 컨트롤러
+# 5.컨트롤러
 Controller : Pod의 개수 보장
-#### ReplicationController  
-요구하는 Pod의 개수를 보장하며 파드 집합의 실행을 항상 안정적으로 유지
+#### 1)ReplicationController  
+요구하는 Pod의 개수를 보장하며 파드 집합의 실행을 항상 안정적으로 유지  
 기본 구성 : selector, replicas, template  
 spec:  
   replicas: <배포갯수>  
@@ -121,8 +121,32 @@ spec:
 kubectl get replicationcontrollers(rc)  
 kubectl get pods --show-labels  
 kubectl edit rc rc-nginx // rc 설정 편집하기  
-kubectl scale rc rc-nginx --replicas=2 //  
-#### Replacaset
-#### Deployment
-#### Daemon set
+kubectl scale rc rc-nginx --replicas=2 // scale 변경  
+kubectl delete rc rc-nginx --cascade=false // Pod 삭제하지않고 rc만 삭제
+#### 2)ReplicaSet  
+ReplicationController보다 풍부한 selector  
+spec:  
+  replicas: <배포갯수>  
+  selector:
+    matchLabels:  
+      key: value
+      version: "2.1"
+    matchExpressions:  
+    - {key: version, operator: In, value:["2.1","2.2"]} // operator : in,notin,exists(버전존재만하면됨),doesnotexist(버전존재x) 등  
+#### 3)Deployment  
+ReplicasSet을 컨트롤해서 Pod 개수 조절  
+metadata:
+  name: deploy_name
+  annotations:  
+    kubernetes.io/change-cause: version 2.2
+kubectl apply -f test.yaml
+kubectl set image deployment <deploy_name> <container_name>=<new_version_image> --record // Rolling Update(지속적으로 서비스하며 업데이트)  
+kubectl rollout history deployment <deploy_name> //히스토리  
+kubectl rollout undo deploy <deploy_name> --to-revision=3 // Rolling Back(롤백)  
+kubectl rollout status deployment <deploy_name> // 현재 상태  
+kubectl rollout pause deployment <deploy_name> // 일시중지  
+kubectl rollout resume deployment <deploy_name> // 재시작  
+*kubectl delete rc rc-nginx // rc를 delete해도 다시 rc 생성  
+#### 4)Daemon set
 #### stateful sets
+kubectl set image deployment app-deploy web=nginx:1.15
