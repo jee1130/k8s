@@ -99,8 +99,8 @@ memory : 100Mi // 1MiB = 1024KiB
 
 #### Pod 환경변수 설정  
 env:
-  -name: test
-   value: "testvaule"  
+      -name: test
+       value: "testvaule"  
 #### Pod 실행 패턴  
 multi container 패턴 3가지  
 Sidecar : 컨테이너 두가지가 같이 실행되야 하는 컨테이너
