@@ -70,9 +70,9 @@ $kubectl create -f webserver.yaml // yaml로 Pod 생성
 2. tcpSocket probe : 지정된 port에 TCP연결을 시도. 연결되지 않으면 컨테이너를 다시 시작.  
 3. exec probe : exec 명령을 전달하고 명령의 종료코드가 0이 아니면 컨테이너 다시 시작.  
 예제)exec:  
-       command:
-         -ls
-         -/data/file
+       >command:
+         >>-ls
+         >>-/data/file
 ##### 옵션  
 initialDelaySeconds : 0 // 컨테이너가 만들어진 뒤 0초 뒤에 Liveness 시작  
 timeoutSeconds : 1 // timeout 시간 1초  
