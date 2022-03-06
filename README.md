@@ -64,7 +64,7 @@ $kubectl logs multipod -c nginx-container // multipod 안에 nginx-container 로
 ##### yaml  
 $kubectl create -f webserver.yaml // yaml로 Pod 생성  
 
-#### Liveness Probe  
+### Liveness Probe  
 매커니즘  
 1. httpdGet probe : 지정한 IP주소, port, path에 HTTP GET 요청하여 응답 확인. 반환코드가 200이 아닌 값이 연속 3번 나오면 오류. 컨테이너를 다시 시작.  
 2. tcpSocket probe : 지정된 port에 TCP연결을 시도. 연결되지 않으면 컨테이너를 다시 시작.  
