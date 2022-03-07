@@ -193,8 +193,36 @@ spec:
   successfulJobHistoryLimit: 3 // 최근 3(default)개만 history  
   JobTemplate:  
     spec:  
-
-      
+# 6.서비스(API)  
+1) Kubernets Service  
+      - 동일한 서비스를 제공하는 Pod 그룹의 단일 진입점을 제공  
+2) Service 종류  
+ClusterIP(default)  
+      - Pod 그룹의 단일 진입점(Virtual IP) 생성(10.96.0.0/12)  
+NodePort  
+      - ClusterIP 가 생성된 후 모든 Worker Node에 외부에서 접속가능한 포트가 예약(30000-32767)  
+LoadBalancer  
+      - 클라우드 인프라스트럭쳐(AWS, Azure, GCP 등)나 오픈스택 클라우드에 적용  
+ExternalName  
+      - 클러스터 안에서 외부에 접속 시 사용할 도메인 등록해서 사용  
+kubectl get service  
+3) headless 서비스  
+      - ClusterIP가 없는 서비스로 단일 진입점이 필요 없을 때 사용  
+      - Service와 연결된 Pod의 endpoint로 DNS 레코드가 생성됨  
+      - Pod의 DNS 주소: pod-ip-addr.namespace.pod.cluster.local //curl 10-36-0-1.default.pod.cluster.local  
+ClusterIP: None // headless 서비스가 됨  
+4) kube-proxy  
+      - kubernetes service의 backend 구현  
+      - endpoint 연결을 위한 iptables 구성  
+      - nodePort로의 접근과 Pod 연결을 구현(iptables 구성)  
+iptables -t nat -S | grep 80  
+# 7.Ingress(API)  
+HTTP나 HTTPS를 통해 클러스터 내부의 서비스를 외부로 노출  
+- Service에 외부 URL을 제공
+- 트래픽을 로드밸런싱  
+- SSL 인증서 처리  
+- Virtual hosting을 지정  
+1) Ingress Controller 설치  
       
       
       
