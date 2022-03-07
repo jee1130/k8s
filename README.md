@@ -118,6 +118,7 @@ spec:
     key:value  
   template:  
     <컨테이너 템플릿>  
+      
 kubectl get replicationcontrollers(rc)  
 kubectl get pods --show-labels  
 kubectl edit rc rc-nginx // rc 설정 편집하기  
@@ -132,21 +133,30 @@ spec:
       key: value
       version: "2.1"
     matchExpressions:  
-    - {key: version, operator: In, value:["2.1","2.2"]} // operator : in,notin,exists(버전존재만하면됨),doesnotexist(버전존재x) 등  
+    - {key: version, operator: In, value:["2.1","2.2"]} // operator : 
+      
+    in,notin,exists(버전존재만하면됨),doesnotexist(버전존재x) 등  
 #### 3)Deployment  
 ReplicasSet을 컨트롤해서 Pod 개수 조절  
 metadata:
   name: deploy_name
   annotations:  
     kubernetes.io/change-cause: version 2.2
+  
 kubectl apply -f test.yaml
 kubectl set image deployment <deploy_name> <container_name>=<new_version_image> --record // Rolling Update(지속적으로 서비스하며 업데이트)  
 kubectl rollout history deployment <deploy_name> //히스토리  
-kubectl rollout undo deploy <deploy_name> --to-revision=3 // Rolling Back(롤백)  
+kubectl rollout undo deploy <deploy_name> --to-revision=3 // Rolling Back(롤백) 
 kubectl rollout status deployment <deploy_name> // 현재 상태  
 kubectl rollout pause deployment <deploy_name> // 일시중지  
 kubectl rollout resume deployment <deploy_name> // 재시작  
 *kubectl delete rc rc-nginx // rc를 delete해도 다시 rc 생성  
-#### 4)Daemon set
-#### stateful sets
+#### 4)Daemon set  
+전체 노드에서 Pod가 한 개씩 실행되도록 보장  
+로그 수입기, 모니터링 에이전트와 같은 프로그램 실행 시 적용  
+kubeadmin token list // 현재 보유한 token list 출력  
+kubeadmin token create --ttl 1h // token 생성  
+kubeadmin join ip:port --token <token>  
+*Rolling update 기능 지원
+#### 5)stateful sets
 kubectl set image deployment app-deploy web=nginx:1.15
