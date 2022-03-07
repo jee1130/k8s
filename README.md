@@ -118,14 +118,13 @@ spec:
     key:value  
   template:  
     <컨테이너 템플릿>  
-      
 kubectl get replicationcontrollers(rc)  
 kubectl get pods --show-labels  
 kubectl edit rc rc-nginx // rc 설정 편집하기  
 kubectl scale rc rc-nginx --replicas=2 // scale 변경  
 kubectl delete rc rc-nginx --cascade=false // Pod 삭제하지않고 rc만 삭제
 #### 2)ReplicaSet  
-ReplicationController보다 풍부한 selector  
+ReplicationController보다 풍부한 selector(lable 지원)  
 spec:  
   replicas: <배포갯수>  
   selector:
@@ -133,8 +132,7 @@ spec:
       key: value
       version: "2.1"
     matchExpressions:  
-    - {key: version, operator: In, value:["2.1","2.2"]} // operator : 
-      
+    - {key: version, operator: In, value:["2.1","2.2"]} // operator :  
     in,notin,exists(버전존재만하면됨),doesnotexist(버전존재x) 등  
 #### 3)Deployment  
 ReplicasSet을 컨트롤해서 Pod 개수 조절  
@@ -150,13 +148,113 @@ kubectl rollout undo deploy <deploy_name> --to-revision=3 // Rolling Back(롤백
 kubectl rollout status deployment <deploy_name> // 현재 상태  
 kubectl rollout pause deployment <deploy_name> // 일시중지  
 kubectl rollout resume deployment <deploy_name> // 재시작  
+kubectl set image deployment app-deploy web=nginx:1.15  
 *kubectl delete rc rc-nginx // rc를 delete해도 다시 rc 생성  
+*Rolling update & Rollback 기능 지원  
 #### 4)Daemon set  
 전체 노드에서 Pod가 한 개씩 실행되도록 보장  
 로그 수입기, 모니터링 에이전트와 같은 프로그램 실행 시 적용  
 kubeadmin token list // 현재 보유한 token list 출력  
-kubeadmin token create --ttl 1h // token 생성  
+kubeadmin token create --ttl 1h // 1시간동안 token 생성 (token은 24시간 후 지워짐)  
 kubeadmin join ip:port --token <token>  
-*Rolling update 기능 지원
-#### 5)stateful sets
-kubectl set image deployment app-deploy web=nginx:1.15
+*Rolling update & Rollback 기능 지원  
+#### 5)stateful sets  
+Pod의 상태(이름,볼륨)를 유지해주는 컨트롤러  
+spec:  
+  replicas: 3
+  serviceName: <name>  
+  podManagementPolicy: <옵션> // OrderedReady(순차적), Parallel(동시에)  
+kubectl scale statefulset <Pod> --replicas=2  
+kubectl edit statefulsets.apps <name>  
+#### 6)job  
+-Pod를 running 중인 상태로 유지  
+-Batch 처리하는 Pod는 작업이 완료되면 종료됨  
+-Batch 처리에 적합한 컨트롤러로 Pod의 성공적인 완료를 보장  
+spec:  
+  completions: 3 // 3번 실행  
+  parallelism: 2 // 동시에 2개 실행  
+  activeDeadlinSeconds: 5 // 저장 시간 내에 Job을 완료  
+  template:  
+    spec:  
+      restartPolicy:Never // OnFailure(비정상종료 시 컨테이너만 restart), Never(Pod restart)  
+  backoffLimit: 3 // 컨테이너 restart 시 3번까지만 restart(기본 6번)  
+kubectl get jobs // job 상태 확인  
+kubectl delete jobs.batch centos-jab // Pod말고 Job만 종료  
+#### 7)CronJob  
+-Job 컨트롤러로 실행할 Application Pod를 주기적으로 반복해서 실행  
+-Data Backup, Send email, Cleaning tasks  
+cronjab schedule: "분 시 일 월 주"  
+spec:  
+  schedule: "* * * * *"  
+  startingDeadlineSeconds: 300  
+  concurrencyPolicy: Allow // Allow(한번에 여러개 Job running중 가능), Forbid(한번에 동작 X)  
+  successfulJobHistoryLimit: 3 // 최근 3(default)개만 history  
+  JobTemplate:  
+    spec:  
+
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+# 6. Multi-master(HA) 쿠버네티스 설치하기  
+-kubeadm  
+      쿠버네티스에서 공식 제공하는 클러스터 생성/관리 도구  
+-control plane(master node) - load balancer 필요  
+      워커 노드들의 상태를 관리하고 제어  
+      Highly Available(HA) cluster 운영 
+      API는 loadbalancer를 통해 worker node에 노출  
+      최소 3개 중첩된 control plane을 구성(5,7개의 master nodes)  
+-worker node  
+      도커 플랫폼을 통해 컨테이너를 동작하며 실제 서비스 제공  
+1) all system-runtime(Docker) Install  
+2) controll plane, worker node - kubeadm 설치  
+      - 설치 전 환경설정  
+      - kubeadm, kubectl, kubelet 설치  
+3) LB(Load Balancer) 구성  
+4) kubeadm을 이용한 HA 클러스터 구성  
+      - master1 : kubeadm init 명령으로 초기화 - LB 등록  
+      - master2, master3을 master1에 join  
+      - CNI(Container Network Interface) 설치  
+      - worker node를 LB 통해 master와 join  
+      - 설치된 시스템 확인  
+master1에서 /etc/hosts 에 master1-3,worker1-2,LB 넣기  
+3) LB 구성  
+nginx 구성파일 만들어 LB 구성  
+(1)mkdir /etc/nginx  
+(2)/etc/nginx/nginx.conf
+events { }  
+stream{  
+    upstream stream_backend {  
+      least_conn;  
+      master1 IP:6443;  
+      master2 IP:6443;  
+      master3 IP:6443;  
+    }  
+    server {  
+      listen   6443;  
+      proxy_pass  steram_backend;  
+      proxy_timeout   300s;  
+      proxy_connect_timeout   1s;  
+    }
+}
+(3)docker run --name proxy -v /etc/nginx/nginx.conf:/etc/nginx/nginx.conf:ro --restart=always -p 6443:6443 -d nginx  
+4) kubeadm을 이용한 HA 클러스터 구성  
+(1)master1: kubeadm init 명령으로 초기화 - LB 등록  
+master1: kubeadm init --control-plane-endpoint "lb.example.com:6443 --upload-certs  
+(2)master2, master3을 master1에 join  
+kubeadm join lb.example.com:6443 --token <token>  
+kubectl get nodes  
+(3)CNI(Container Network Interface) 설치 : master1  
+kubectl apply -f "https://cloud.weave.works/k8s/net?k8s-version=$(kubectl version | base64 | tr -d '\n')"  
+kubectl get nodes  
+(4)worker node를 LB통해 master와 join  
+kubeadm join lb.example.com:6443 --token <token>  
