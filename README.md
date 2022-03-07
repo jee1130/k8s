@@ -222,7 +222,8 @@ HTTP나 HTTPS를 통해 클러스터 내부의 서비스를 외부로 노출
 - 트래픽을 로드밸런싱  
 - SSL 인증서 처리  
 - Virtual hosting을 지정  
-1) Ingress Controller 설치  
+1) Ingress Controller 설치(쿠버네티스 홈페이지)  
+       
       
       
       
