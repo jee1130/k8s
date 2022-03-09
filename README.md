@@ -223,11 +223,19 @@ HTTP나 HTTPS를 통해 클러스터 내부의 서비스를 외부로 노출
 - SSL 인증서 처리  
 - Virtual hosting을 지정  
 1) Ingress Controller 설치(쿠버네티스 홈페이지)  
-       
-      
-      
-      
-      
+# 8.레이블(label)애너테이션
+1) 레이블(label) : Node를 포함하여 pod, deployment 등 모든 리소스에 할당  
+　　　　　　　　 리소스의 특성을 분류하고, Selector를 이용해서 선택  
+　　　　　　　　 Key-value 한쌍으로 적용  
+kubectl get pods --show-labels // label 목록  
+kubectl get pods --selector rel=beta // 특정 label 목록  
+kubectl label pod <pod명> name=test rel=beta --overwrite // label수정 및 적용  
+kubectl label pod <pod명> run- // label 삭제  
+Selector : yaml 파일에 옵션 넣어서 특정 label들 명령하기  
+2) 워커 노드에 레이블 설정  
+ex) disk=ssd, GPU=true  
+kubectl label nodes <노드 이름> <레이블 키>=<레이블 값>  
+
       
       
       
