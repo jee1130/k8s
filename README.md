@@ -223,28 +223,69 @@ HTTP나 HTTPS를 통해 클러스터 내부의 서비스를 외부로 노출
 - SSL 인증서 처리  
 - Virtual hosting을 지정  
 1) Ingress Controller 설치(쿠버네티스 홈페이지)  
-# 8.레이블(label)애너테이션
+# 8. 레이블(label)과 애너테이션(Annotation)
 1) 레이블(label) : Node를 포함하여 pod, deployment 등 모든 리소스에 할당  
 　　　　　　　　 리소스의 특성을 분류하고, Selector를 이용해서 선택  
 　　　　　　　　 Key-value 한쌍으로 적용  
 kubectl get pods --show-labels // label 목록  
 kubectl get pods --selector rel=beta // 특정 label 목록  
+kubelctl get nodes -L disk,gpu // 특정 label 확인  
 kubectl label pod <pod명> name=test rel=beta --overwrite // label수정 및 적용  
 kubectl label pod <pod명> run- // label 삭제  
 Selector : yaml 파일에 옵션 넣어서 특정 label들 명령하기  
 2) 워커 노드에 레이블 설정  
 ex) disk=ssd, GPU=true  
 kubectl label nodes <노드 이름> <레이블 키>=<레이블 값>  
+yaml파일에는 nodeSelector: key: value // 특정 label값이 있는 node에 실행  
+3) 애너테이션(Annotation) : label과 동일하게 key-value를 통해 리소스의 특성을 기록  
+　　　　　　　　kubernetes에게 특정 정보 전달할 용도로 사용 // ex) Deployment의 rolling update 정보 기록  
+　　　　　　　　관리를 위해 필요한 정보를 기록할 용도로 사용 // 릴리즈, 로깅, 모니터링에 필요한 정보들을 기록  
+annotations:  
+　builder: "JIHOON LEE"  
+　builddate: 20220309  
+　imageregistry: "https://hub.docker.com/"  
+4) Canary Deployment(카나리 배포)  
+포드를 배포(업데이트)하는 방법  
+      (1)블루 그린 업데이트 : 블루(old) 다운하고 그린(new) 업하는 방법. 서비스 중단 있음  
+      (2)카나리 업데이트 : 기존 버전을 유지한 채로 새로운 버전 추가하여 같이 동작하면서 변경   
+      (3)롤링 업데이트 : 서비스 운영중에 하나씩 버전업데이트  
+# 9. ConfigMap  
+ConfigMap : 컨테이너 구성 정보를 한곳에 모아서 관리  
+1) ConfigMap 생성  
+kubectl create configmap <CONFIG_NAME> --from-file=파일명 --from-literal-key=value
+2) ConfigMap 적용  
+env:  
+-name:INTERVAL  
+　valueFrom:  
+　　configMapKeyRef:  
+　　　name: config명  
+　　　key:INTERVAL  
+3) ConfigMap 전체를 적용하기  
+envFrom:  
+　-configMapRef:  
+　 　name: config명  
+4) ConfigMap 볼륨마운트로 적용 가능  
 
-      
-      
-      
-      
-      
-      
-      
-      
-# 6. Multi-master(HA) 쿠버네티스 설치하기  
+# 10. Secret  
+secret : 컨테이너가 사용하는 password, auth token, ssh key와 같은 중요한 정보를 저장하고 민감한 구성정보를 base64로 인코딩해서 한 곳에 모아서 관리  
+1) secret 만들기  
+kubectl create secret <Available Commands> name [flags] [options]  
+(1) Available Commands 옵션 3가지  
+docker-registry : --docker-username=tiger    
+generic : --from-literal=2 --from-file=./genid-web-config/   
+tls : --cert=path 
+2) secret 사용하기  
+env:  
+-name: INTERVAL  
+　valueFrom:
+　　secretKeyRef:  
+　　　name: secret명  
+　　　key: INTERVAL  
+3) secret 데이터 용량 제한  
+secret etcd에 암호화 하지 않은 텍스트로 저장되므로 secret value가 커지면 메모리 용량을 많이 사용하게 됨  
+secret의 최대 크기는 1MB  
+
+# 11. Multi-master(HA) 쿠버네티스 설치하기  
 -kubeadm  
       쿠버네티스에서 공식 제공하는 클러스터 생성/관리 도구  
 -control plane(master node) - load balancer 필요  
